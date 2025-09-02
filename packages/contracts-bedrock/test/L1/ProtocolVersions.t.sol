@@ -24,6 +24,16 @@ contract ProtocolVersions_TestInit is CommonTest {
     }
 }
 
+/// @title ProtocolVersions_Version_Test
+/// @notice Test contract for ProtocolVersions `version` function.
+contract ProtocolVersions_Version_Test is ProtocolVersions_TestInit {
+    /// @notice Ensures the semantic version string is non-empty.
+    function test_version_nonEmpty_succeeds() external view {
+        assert(bytes(protocolVersions.version()).length > 0);
+    }
+}
+
+
 /// @title ProtocolVersions_Initialize_Test
 /// @notice Test contract for ProtocolVersions `initialize` function.
 contract ProtocolVersions_Initialize_Test is ProtocolVersions_TestInit {
@@ -53,9 +63,9 @@ contract ProtocolVersions_Initialize_Test is ProtocolVersions_TestInit {
 
         // The order depends here
         vm.expectEmit(true, true, true, true, address(protocolVersions));
-        emit ConfigUpdate(0, IProtocolVersions.UpdateType.REQUIRED_PROTOCOL_VERSION, abi.encode(required));
+        emit ConfigUpdate(protocolVersions.VERSION(), IProtocolVersions.UpdateType.REQUIRED_PROTOCOL_VERSION, abi.encode(required));
         vm.expectEmit(true, true, true, true, address(protocolVersions));
-        emit ConfigUpdate(0, IProtocolVersions.UpdateType.RECOMMENDED_PROTOCOL_VERSION, abi.encode(recommended));
+        emit ConfigUpdate(protocolVersions.VERSION(), IProtocolVersions.UpdateType.RECOMMENDED_PROTOCOL_VERSION, abi.encode(recommended));
 
         vm.prank(EIP1967Helper.getAdmin(address(protocolVersions)));
         IProxy(payable(address(protocolVersions))).upgradeToAndCall(
@@ -78,12 +88,21 @@ contract ProtocolVersions_SetRequired_Test is ProtocolVersions_TestInit {
     /// @notice Tests that `setRequired` updates the required protocol version successfully.
     function testFuzz_setRequired_succeeds(uint256 _version) external {
         vm.expectEmit(true, true, true, true);
-        emit ConfigUpdate(0, IProtocolVersions.UpdateType.REQUIRED_PROTOCOL_VERSION, abi.encode(_version));
+        emit ConfigUpdate(protocolVersions.VERSION(), IProtocolVersions.UpdateType.REQUIRED_PROTOCOL_VERSION, abi.encode(_version));
 
         vm.prank(protocolVersions.owner());
         protocolVersions.setRequired(ProtocolVersion.wrap(_version));
         assertEq(ProtocolVersion.unwrap(protocolVersions.required()), _version);
     }
+
+    /// @notice Tests owner-only access control via fuzzing different callers.
+    function testFuzz_setRequired_onlyOwner_reverts(address _notOwner, uint256 _ver) external {
+        vm.assume(_notOwner != protocolVersions.owner());
+        vm.prank(_notOwner);
+        vm.expectRevert("Ownable: caller is not the owner");
+        protocolVersions.setRequired(ProtocolVersion.wrap(_ver));
+    }
+
 
     /// @notice Tests that `setRequired` reverts if the caller is not the owner.
     function test_setRequired_notOwner_reverts() external {
@@ -98,16 +117,25 @@ contract ProtocolVersions_SetRecommended_Test is ProtocolVersions_TestInit {
     /// @notice Tests that `setRecommended` updates the recommended protocol version successfully.
     function testFuzz_setRecommended_succeeds(uint256 _version) external {
         vm.expectEmit(true, true, true, true);
-        emit ConfigUpdate(0, IProtocolVersions.UpdateType.RECOMMENDED_PROTOCOL_VERSION, abi.encode(_version));
+        emit ConfigUpdate(protocolVersions.VERSION(), IProtocolVersions.UpdateType.RECOMMENDED_PROTOCOL_VERSION, abi.encode(_version));
 
         vm.prank(protocolVersions.owner());
         protocolVersions.setRecommended(ProtocolVersion.wrap(_version));
         assertEq(ProtocolVersion.unwrap(protocolVersions.recommended()), _version);
     }
 
+    /// @notice Tests owner-only access control via fuzzing different callers.
+    function testFuzz_setRecommended_onlyOwner_reverts(address _notOwner, uint256 _ver) external {
+        vm.assume(_notOwner != protocolVersions.owner());
+        vm.prank(_notOwner);
+        vm.expectRevert("Ownable: caller is not the owner");
+        protocolVersions.setRecommended(ProtocolVersion.wrap(_ver));
+    }
+
     /// @notice Tests that `setRecommended` reverts if the caller is not the owner.
     function test_setRecommended_notOwner_reverts() external {
         vm.expectRevert("Ownable: caller is not the owner");
+        
         protocolVersions.setRecommended(ProtocolVersion.wrap(0));
     }
 }
