@@ -33,7 +33,6 @@ contract ProtocolVersions_Version_Test is ProtocolVersions_TestInit {
     }
 }
 
-
 /// @title ProtocolVersions_Initialize_Test
 /// @notice Test contract for ProtocolVersions `initialize` function.
 contract ProtocolVersions_Initialize_Test is ProtocolVersions_TestInit {
@@ -103,7 +102,6 @@ contract ProtocolVersions_SetRequired_Test is ProtocolVersions_TestInit {
         protocolVersions.setRequired(ProtocolVersion.wrap(_ver));
     }
 
-
     /// @notice Tests that `setRequired` reverts if the caller is not the owner.
     function test_setRequired_notOwner_reverts() external {
         vm.expectRevert("Ownable: caller is not the owner");
@@ -135,7 +133,6 @@ contract ProtocolVersions_SetRecommended_Test is ProtocolVersions_TestInit {
     /// @notice Tests that `setRecommended` reverts if the caller is not the owner.
     function test_setRecommended_notOwner_reverts() external {
         vm.expectRevert("Ownable: caller is not the owner");
-        
         protocolVersions.setRecommended(ProtocolVersion.wrap(0));
     }
 }
