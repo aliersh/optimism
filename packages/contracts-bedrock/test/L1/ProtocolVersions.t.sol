@@ -24,6 +24,15 @@ contract ProtocolVersions_TestInit is CommonTest {
     }
 }
 
+/// @title ProtocolVersions_Version_Test
+/// @notice Test contract for ProtocolVersions `version` function.
+contract ProtocolVersions_Version_Test is ProtocolVersions_TestInit {
+    /// @notice Tests that version returns a non-empty string.
+    function test_version_succeeds() external view {
+        assert(bytes(protocolVersions.version()).length > 0);
+    }
+}
+
 /// @title ProtocolVersions_Initialize_Test
 /// @notice Test contract for ProtocolVersions `initialize` function.
 contract ProtocolVersions_Initialize_Test is ProtocolVersions_TestInit {
@@ -77,6 +86,7 @@ contract ProtocolVersions_Initialize_Test is ProtocolVersions_TestInit {
 contract ProtocolVersions_SetRequired_Test is ProtocolVersions_TestInit {
     /// @notice Tests that `setRequired` updates the required protocol version successfully.
     function testFuzz_setRequired_succeeds(uint256 _version) external {
+        _version = bound(_version, 0, type(uint128).max);
         vm.expectEmit(true, true, true, true);
         emit ConfigUpdate(0, IProtocolVersions.UpdateType.REQUIRED_PROTOCOL_VERSION, abi.encode(_version));
 
@@ -97,6 +107,7 @@ contract ProtocolVersions_SetRequired_Test is ProtocolVersions_TestInit {
 contract ProtocolVersions_SetRecommended_Test is ProtocolVersions_TestInit {
     /// @notice Tests that `setRecommended` updates the recommended protocol version successfully.
     function testFuzz_setRecommended_succeeds(uint256 _version) external {
+        _version = bound(_version, 0, type(uint128).max);
         vm.expectEmit(true, true, true, true);
         emit ConfigUpdate(0, IProtocolVersions.UpdateType.RECOMMENDED_PROTOCOL_VERSION, abi.encode(_version));
 
